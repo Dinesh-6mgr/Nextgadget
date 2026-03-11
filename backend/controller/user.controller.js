@@ -17,6 +17,12 @@ const generateToken = (id) => {
 
 
 
+
+
+
+
+
+
 // @desc    Register a new user
 // @route   POST /api/users/register
 // @access  Public
