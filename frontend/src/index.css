@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark text-textMain antialiased min-h-screen font-sans;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/80 text-white font-black py-3 px-6 rounded-xl transition-all shadow-glow uppercase tracking-widest text-xs active:scale-95;
+  }
+  .card-dark {
+    @apply bg-[#151B28] border border-white/5 rounded-3xl p-6 hover:border-accent/30 transition-all;
+  }
+}
+
+/* Custom Scrollbar for Dark Mode */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0F1C;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E2535;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1E88E5;
+}
