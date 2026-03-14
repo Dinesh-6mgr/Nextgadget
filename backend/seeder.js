@@ -215,11 +215,25 @@ const importData = async () => {
   try {
     await Product.deleteMany();
 
-    const adminUser = await User.findOne({ isAdmin: true });
+    // Create / find admin user for seeding products
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+    const adminPassword = process.env.ADMIN_PASSWORD || "123456";
+    const adminName = process.env.ADMIN_NAME || "Admin";
+
+    let adminUser = await User.findOne({ email: adminEmail });
 
     if (!adminUser) {
-      console.error('Admin user not found! Please create an admin user first.');
-      process.exit(1);
+      adminUser = await User.create({
+        name: adminName,
+        email: adminEmail,
+        password: adminPassword,
+        isAdmin: true,
+      });
+      console.log(`Created admin user: ${adminEmail} / ${adminPassword}`);
+    } else if (!adminUser.isAdmin) {
+      adminUser.isAdmin = true;
+      await adminUser.save();
+      console.log(`Updated existing user to admin: ${adminEmail}`);
     }
 
     const sampleProducts = products.map((product) => {

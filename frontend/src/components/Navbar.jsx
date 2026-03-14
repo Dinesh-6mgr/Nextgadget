@@ -67,6 +67,15 @@ const Navbar = () => {
             
             {userInfo ? (
               <div className="flex items-center gap-4">
+                {userInfo.isAdmin && (
+                  <Link
+                    to="/admin/productlist"
+                    className="hidden sm:inline-flex items-center gap-2 bg-[#151B28] hover:bg-[#1E2535] border border-white/10 px-4 py-2 rounded-lg text-textSecondary hover:text-textMain transition-all active:scale-95"
+                  >
+                    <span className="text-[10px] font-black uppercase tracking-widest">Admin</span>
+                  </Link>
+                )}
+
                 <Link to="/profile" className="flex items-center gap-2 hover:text-secondary transition-all group">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:border-secondary transition-all">
                     <User className="h-4 w-4 text-secondary" />

@@ -12,6 +12,7 @@ import PlaceOrder from './pages/PlaceOrder';
 import OrderDetails from './pages/OrderDetails';
 import Profile from './pages/Profile';
 import Shop from './pages/Shop';
+import AdminProductList from './pages/AdminProductList';
 
 const App = () => {
   return (
@@ -29,6 +30,8 @@ const App = () => {
             <Route path="/category/:category/page/:pageNumber" element={<Shop />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/admin/productlist" element={<AdminProductList />} />
+            <Route path="/admin/productlist/:pageNumber" element={<AdminProductList />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/shipping" element={<Shipping />} />
