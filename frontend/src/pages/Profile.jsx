@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../api';
 import { User, Mail, Lock, Loader2, Package, ArrowRight, Clock, CheckCircle2, ShoppingBag, Settings, ShieldCheck, Phone } from 'lucide-react';
 
 const Profile = () => {

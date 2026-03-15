@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { clearCartItems } from '../redux/slices/cartSlice';
-import api from '../utils/api';
+import api from '../api';
 import { MapPin, CreditCard, ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Truck, Package, Info } from 'lucide-react';
 
 const PlaceOrder = () => {
