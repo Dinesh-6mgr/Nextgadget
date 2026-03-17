@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../redux/slices/authSlice';
+import { fetchCart, clearCartLocal } from '../redux/slices/cartSlice';
 import { ShoppingCart, User, Menu, Search, LogOut } from 'lucide-react';
 
 const Navbar = () => {
@@ -11,7 +12,15 @@ const Navbar = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
 
+  // Fetch cart from backend whenever user logs in
+  useEffect(() => {
+    if (userInfo && !userInfo.isAdmin) {
+      dispatch(fetchCart());
+    }
+  }, [userInfo, dispatch]);
+
   const handleLogout = () => {
+    dispatch(clearCartLocal());
     dispatch(logout());
   };
 

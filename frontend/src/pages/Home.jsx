@@ -1,13 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
+import { addToCartAsync } from '../redux/slices/cartSlice';
 import { Smartphone, Laptop, Camera, Watch, Headphones, ChevronRight, Star, ArrowRight, Loader2, ShoppingCart } from 'lucide-react';
 
 const Home = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState('');
   const { products, loading, error } = useSelector((state) => state.products);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const handleAddToCart = async (product) => {
+    if (!userInfo) {
+      navigate('/login?redirect=/');
+      return;
+    }
+    const result = await dispatch(addToCartAsync({ ...product, qty: 1 }));
+    if (addToCartAsync.fulfilled.match(result)) {
+      navigate('/cart');
+    } else {
+      alert(result.payload || 'Failed to add to cart');
+    }
+  };
 
   useEffect(() => {
     // For Home, we just fetch all and filter locally for responsiveness, 
@@ -166,6 +182,14 @@ const Home = () => {
                     <p className="text-accent font-black text-2xl tracking-tighter">${product.price}</p>
                     <span className="text-[10px] font-bold text-textSecondary/50 uppercase tracking-widest">{product.category}</span>
                   </div>
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    disabled={product.countInStock === 0}
+                    className="mt-4 w-full flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary text-secondary hover:text-white border border-primary/20 hover:border-primary py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                  </button>
                 </div>
               </div>
             ))}

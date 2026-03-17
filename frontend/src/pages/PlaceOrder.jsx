@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { clearCartItems } from '../redux/slices/cartSlice';
+import { clearCartAsync } from '../redux/slices/cartSlice';
 import api from '../api';
 import { MapPin, CreditCard, ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, Truck, Package, Info } from 'lucide-react';
 
@@ -37,7 +37,7 @@ const PlaceOrder = () => {
         taxPrice,
         totalPrice,
       });
-      dispatch(clearCartItems());
+      dispatch(clearCartAsync());
       navigate(`/order/${data._id}`);
     } catch (error) {
       alert(error.response?.data?.message || error.message);

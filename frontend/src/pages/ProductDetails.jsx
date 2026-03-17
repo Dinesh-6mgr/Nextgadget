@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProductDetails } from '../redux/slices/productSlice';
-import { addToCart } from '../redux/slices/cartSlice';
+import { addToCartAsync } from '../redux/slices/cartSlice';
 import { ShoppingCart, Star, ArrowLeft, Loader2, Check, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 
 const ProductDetails = () => {
@@ -18,13 +18,23 @@ const ProductDetails = () => {
     dispatch(getProductDetails(id));
   }, [dispatch, id]);
 
-  const addToCartHandler = () => {
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState(null);
+
+  const addToCartHandler = async () => {
     if (!userInfo) {
       navigate(`/login?redirect=/product/${id}`);
       return;
     }
-    dispatch(addToCart({ ...product, qty }));
-    navigate('/cart');
+    setCartLoading(true);
+    setCartError(null);
+    const result = await dispatch(addToCartAsync({ ...product, qty }));
+    setCartLoading(false);
+    if (addToCartAsync.fulfilled.match(result)) {
+      navigate('/cart');
+    } else {
+      setCartError(result.payload || 'Failed to add to cart');
+    }
   };
 
   if (loading) return (
@@ -111,17 +121,20 @@ const ProductDetails = () => {
                 )}
               </div>
 
+              {cartError && (
+                <p className="text-red-400 text-xs font-bold text-center mb-4">{cartError}</p>
+              )}
               <button 
                 onClick={addToCartHandler}
-                disabled={product.countInStock === 0}
+                disabled={product.countInStock === 0 || cartLoading}
                 className={`w-full py-5 rounded-2xl font-black text-xl tracking-wider transition-all shadow-glow flex items-center justify-center gap-4 ${
                   product.countInStock > 0 
                     ? 'bg-primary hover:bg-primary/90 text-white transform hover:-translate-y-1 active:scale-95' 
                     : 'bg-white/5 text-textSecondary cursor-not-allowed border border-white/10'
                 }`}
               >
-                <ShoppingCart className="h-6 w-6" />
-                {product.countInStock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
+                {cartLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ShoppingCart className="h-6 w-6" />}
+                {cartLoading ? 'Adding...' : product.countInStock > 0 ? 'ADD TO CART' : 'OUT OF STOCK'}
               </button>
             </div>
 
