@@ -19,23 +19,22 @@ const userSchema = new mongoose.Schema(
         },
         cart: [
             {
-                productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-                quantity: { type: Number, default: 1 },
+                product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+                name: { type: String, required: true },
+                image: { type: String },
+                price: { type: Number, required: true },
+                countInStock: { type: Number, required: true },
+                qty: { type: Number, required: true, default: 1 },
             },
         ],
-        wishlist: [
-            {
-                productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-            },
-        ],
+
     },
     { timestamps: true }
 );
 
 // Encrypt password before saving
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password"))
-     return next(); // add return
+userSchema.pre("save", async function () {
+    if (!this.isModified("password")) return;
     this.password = await bcrypt.hash(this.password, 10);
 });
 

@@ -88,8 +88,6 @@ export const getUserProfile = async (req, res) => {
             isAdmin: user.isAdmin,
             phone: user.phone,
             address: user.address,
-            cart: user.cart,
-            wishlist: user.wishlist,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -127,8 +125,6 @@ export const updateUserProfile = async (req, res) => {
             isAdmin: updatedUser.isAdmin,
             phone: updatedUser.phone,
             address: updatedUser.address,
-            cart: updatedUser.cart,
-            wishlist: updatedUser.wishlist,
             token: generateToken(updatedUser._id),
         });
     } catch (error) {

@@ -34,26 +34,16 @@ export const protect = async (req, res, next) => {
             req.user = await User.findById(decoded.id).select("-password");
 
             if (!req.user) {
-                console.warn("User from token not found in DB:", decoded.id);
                 return res.status(401).json({ message: "User not found" });
             }
 
             return next();
         } catch (error) {
-            console.error("Auth Token Failed:", error.message);
             return res.status(401).json({ message: "Not authorized, token failed" });
         }
     }
 
     if (!token) {
-        // Detailed console log for debugging why it's failing
-        console.warn("--- AUTH FAILURE ---");
-        console.warn("URL:", req.originalUrl);
-        console.warn("Method:", req.method);
-        console.warn("Headers:", JSON.stringify(req.headers, null, 2));
-        console.warn("Query:", JSON.stringify(req.query, null, 2));
-        console.warn("Body Keys:", Object.keys(req.body || {}));
-        console.warn("--------------------");
         return res.status(401).json({ message: "Not authorized, no token" });
     }
 };
