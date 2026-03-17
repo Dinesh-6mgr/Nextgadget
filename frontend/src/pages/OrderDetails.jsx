@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
-import { Loader2, Package, MapPin, CreditCard, CheckCircle2, Truck, Info, Star, ShieldCheck, ShoppingCart, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, Package, MapPin, CreditCard, CheckCircle2, Truck, Info, ShieldCheck, ShoppingCart, Clock } from 'lucide-react';
 
 const OrderDetails = () => {
   const { id } = useParams();

@@ -107,13 +107,7 @@ export const updateUserProfile = async (req, res) => {
         user.email = req.body.email || user.email;
         user.phone = req.body.phone || user.phone;
         user.address = req.body.address || user.address;
-        
-        // For testing/development: allow self-promotion if the user is the only one or if explicitly requested in dev
-        if (req.body.isAdmin !== undefined) {
-            user.isAdmin = req.body.isAdmin;
-        }
 
-        // Update password if provided (will be hashed by schema)
         if (req.body.password) user.password = req.body.password;
 
         const updatedUser = await user.save();
