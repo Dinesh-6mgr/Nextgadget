@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import fs from "fs";
+import path from "path";
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -36,6 +38,7 @@ export const registerUser = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            avatar: user.avatar,
             token: generateToken(user._id),
         });
     } catch (error) {
@@ -64,6 +67,7 @@ export const loginUser = async (req, res) => {
             name: user.name,
             email: user.email,
             isAdmin: user.isAdmin,
+            avatar: user.avatar,
             token: generateToken(user._id),
         });
     } catch (error) {
@@ -88,6 +92,7 @@ export const getUserProfile = async (req, res) => {
             isAdmin: user.isAdmin,
             phone: user.phone,
             address: user.address,
+            avatar: user.avatar,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -119,8 +124,34 @@ export const updateUserProfile = async (req, res) => {
             isAdmin: updatedUser.isAdmin,
             phone: updatedUser.phone,
             address: updatedUser.address,
+            avatar: updatedUser.avatar,
             token: generateToken(updatedUser._id),
         });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Upload avatar
+// @route   POST /api/user/avatar
+// @access  Private
+export const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // Delete old avatar file if it was a local upload
+        if (user.avatar && user.avatar.startsWith("/uploads/")) {
+            const oldPath = path.join("uploads", path.basename(user.avatar));
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+
+        user.avatar = `/uploads/${req.file.filename}`;
+        await user.save();
+
+        res.json({ avatar: user.avatar });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

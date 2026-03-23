@@ -3,7 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../redux/slices/authSlice';
 import { fetchCart, clearCartLocal } from '../redux/slices/cartSlice';
-import { ShoppingCart, User, Menu, Search, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Menu, Search, LogOut, LayoutDashboard } from 'lucide-react';
+
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 const Navbar = () => {
   const [keyword, setKeyword] = useState('');
@@ -11,6 +13,11 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.cart);
+  const { logoUrl, storeName } = useSelector((state) => state.settings);
+
+  const logoSrc = logoUrl
+    ? (logoUrl.startsWith('/uploads') ? `${BASE_URL}${logoUrl}` : logoUrl)
+    : '/fulllogo.png';
 
   // Fetch cart from backend whenever user logs in
   useEffect(() => {
@@ -40,12 +47,12 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex-shrink-0 flex items-center gap-2">
             <img 
-              src="/fulllogo.png" 
-              alt="NextGadget Logo" 
+              src={logoSrc}
+              alt={storeName || 'Logo'}
               className="h-10 w-auto"
             />
             <span className="text-xl font-bold tracking-wider text-textMain hidden sm:block uppercase">
-              NEXT<span className="text-secondary">GADGET</span>
+              {storeName ? storeName.toUpperCase() : 'NEXT'}<span className="text-secondary">{storeName ? '' : 'GADGET'}</span>
             </span>
           </Link>
 
@@ -78,7 +85,7 @@ const Navbar = () => {
               <div className="flex items-center gap-4">
                 {userInfo.isAdmin && (
                   <Link
-                    to="/admin/productlist"
+                    to="/admin"
                     className="hidden sm:inline-flex items-center gap-2 bg-[#151B28] hover:bg-[#1E2535] border border-white/10 px-4 py-2 rounded-lg text-textSecondary hover:text-textMain transition-all active:scale-95"
                   >
                     <span className="text-[10px] font-black uppercase tracking-widest">Admin</span>

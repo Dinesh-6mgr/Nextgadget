@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import { Loader2, Package, MapPin, CreditCard, CheckCircle2, Truck, Info, ShieldCheck, ShoppingCart, Clock } from 'lucide-react';
+import useCurrency from '../hooks/useCurrency';
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const OrderDetails = () => {
   const [error, setError] = useState(null);
 
   const { userInfo } = useSelector((state) => state.auth);
+  const price = useCurrency();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -181,8 +183,8 @@ const OrderDetails = () => {
                       <p className="text-xs text-textSecondary font-bold italic">High-Performance Hardware</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-textSecondary">{item.qty} x ${item.price}</p>
-                      <p className="font-black text-accent text-lg">${(item.qty * item.price).toFixed(2)}</p>
+                      <p className="text-sm font-bold text-textSecondary">{item.qty} x {price(item.price)}</p>
+                      <p className="font-black text-accent text-lg">{price(item.qty * item.price)}</p>
                     </div>
                   </div>
                 ))}
@@ -201,23 +203,23 @@ const OrderDetails = () => {
               <div className="space-y-6 mb-12 text-sm">
                 <div className="flex justify-between items-center group">
                   <span className="text-textSecondary font-bold uppercase tracking-widest text-[10px]">Net Credits</span>
-                  <span className="font-black text-textMain">${order.itemsPrice}</span>
+                  <span className="font-black text-textMain">{price(order.itemsPrice)}</span>
                 </div>
                 <div className="flex justify-between items-center group">
                   <span className="text-textSecondary font-bold uppercase tracking-widest text-[10px]">Logistics Fee</span>
                   <span className={`font-black ${Number(order.shippingPrice) === 0 ? 'text-green-400' : 'text-textMain'}`}>
-                    {Number(order.shippingPrice) === 0 ? 'FREE' : `$${order.shippingPrice}`}
+                    {Number(order.shippingPrice) === 0 ? 'FREE' : price(order.shippingPrice)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center group">
                   <span className="text-textSecondary font-bold uppercase tracking-widest text-[10px]">Tax Allocation</span>
-                  <span className="font-black text-textMain">${order.taxPrice}</span>
+                  <span className="font-black text-textMain">{price(order.taxPrice)}</span>
                 </div>
                 
                 <div className="pt-8 border-t border-white/10 flex flex-col gap-4">
                   <div className="flex justify-between items-end">
                     <span className="text-lg font-black uppercase tracking-tighter text-textMain">Grand Total</span>
-                    <span className="text-4xl font-black text-secondary tracking-tighter">${order.totalPrice}</span>
+                    <span className="text-4xl font-black text-secondary tracking-tighter">{price(order.totalPrice)}</span>
                   </div>
                 </div>
               </div>

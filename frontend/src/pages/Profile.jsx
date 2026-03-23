@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useRef, useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import api from '../api';
-import { User, Mail, Lock, Loader2, Package, ArrowRight, Clock, CheckCircle2, ShoppingBag, Settings, ShieldCheck, Phone } from 'lucide-react';
+import { updateAvatar } from '../redux/slices/authSlice';
+import { User, Mail, Lock, Loader2, Package, ArrowRight, Clock, CheckCircle2, ShoppingBag, Settings, ShieldCheck, Phone, Camera } from 'lucide-react';
+import useCurrency from '../hooks/useCurrency';
+
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 const Profile = () => {
+  const price = useCurrency();
+  const dispatch = useDispatch();
+  const avatarInputRef = useRef(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,10 +20,32 @@ const Profile = () => {
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [success, setSuccess] = useState(false);
 
   const { userInfo } = useSelector((state) => state.auth);
+
+  const avatarSrc = userInfo?.avatar
+    ? (userInfo.avatar.startsWith('/uploads') ? `${BASE_URL}${userInfo.avatar}` : userInfo.avatar)
+    : null;
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setAvatarLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('avatar', file);
+      const { data } = await api.post('/user/avatar', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      dispatch(updateAvatar(data.avatar));
+    } catch (err) {
+      setMessage(err.response?.data?.message || err.message);
+    }
+    setAvatarLoading(false);
+  };
 
   useEffect(() => {
     if (userInfo) {
@@ -70,11 +99,34 @@ const Profile = () => {
             <div className="card-dark p-8 border-white/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors" />
               <div className="flex flex-col items-center mb-10 text-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary p-1 mb-4 shadow-glow">
-                  <div className="w-full h-full rounded-full bg-dark flex items-center justify-center text-textMain">
-                    <User className="h-10 w-10 text-secondary" />
+                <div
+                  className="relative w-24 h-24 rounded-full mb-4 cursor-pointer group/avatar"
+                  onClick={() => avatarInputRef.current?.click()}
+                >
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary p-1 shadow-glow">
+                    <div className="w-full h-full rounded-full bg-dark overflow-hidden flex items-center justify-center">
+                      {avatarLoading ? (
+                        <Loader2 className="h-8 w-8 text-secondary animate-spin" />
+                      ) : avatarSrc ? (
+                        <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="h-10 w-10 text-secondary" />
+                      )}
+                    </div>
+                  </div>
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                    <Camera className="h-6 w-6 text-white" />
                   </div>
                 </div>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+                <p className="text-[10px] text-textSecondary/50 font-bold uppercase tracking-widest mb-2">Click to change photo</p>
                 <h2 className="text-2xl font-black uppercase tracking-tighter mb-1 text-textMain">{userInfo?.name}</h2>
                 <p className="text-textSecondary text-xs uppercase tracking-widest font-bold opacity-50 flex items-center gap-2">
                   {userInfo?.isAdmin ? <ShieldCheck className="h-4 w-4 text-accent" /> : null}
@@ -206,7 +258,7 @@ const Profile = () => {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-textSecondary uppercase tracking-widest mb-1">Order ID: {order._id.substring(0, 10)}...</p>
-                          <p className="text-lg font-black tracking-tight text-textMain">${order.totalPrice}</p>
+                          <p className="text-lg font-black tracking-tight text-textMain">{price(order.totalPrice)}</p>
                           <p className="text-xs text-textSecondary italic font-bold">Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
                         </div>
                       </div>

@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import userRoute from "./route/user.route.js";
 import productRoutes from "./route/productRoutes.js";
 import orderRoutes from "./route/orderRoutes.js";
@@ -9,8 +11,11 @@ import { authLimiter, apiLimiter, cartLimiter, orderLimiter } from "./middleware
 
 const app = express();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/user", authLimiter, userRoute);
 app.use("/api/products", apiLimiter, productRoutes);

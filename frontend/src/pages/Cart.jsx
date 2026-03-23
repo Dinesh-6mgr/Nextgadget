@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { fetchCart, addToCartAsync, removeFromCartAsync } from '../redux/slices/cartSlice';
+import { fetchCart, removeFromCartAsync, updateQtyLocal, updateCartQty, removeItemLocal } from '../redux/slices/cartSlice';
 import { ShoppingCart, Trash2, ArrowLeft, ArrowRight, Minus, Plus, CreditCard, Loader2 } from 'lucide-react';
+import useCurrency from '../hooks/useCurrency';
 
 const Cart = () => {
   const dispatch = useDispatch();
@@ -10,6 +11,7 @@ const Cart = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
   const { cartItems, loading } = useSelector((state) => state.cart);
+  const price = useCurrency();
   useEffect(() => {
     if (!userInfo) {
       navigate('/login?redirect=/cart');
@@ -21,12 +23,15 @@ const Cart = () => {
     }
   }, [userInfo, navigate, dispatch]);
 
-  const updateQty = async (item, qty) => {
-    await dispatch(addToCartAsync({ ...item, _id: item._id, qty }));
+  const updateQty = (item, qty) => {
+    if (qty < 1 || qty > item.countInStock) return;
+    dispatch(updateQtyLocal({ _id: item._id, qty }));       // instant UI update
+    dispatch(updateCartQty({ ...item, qty }));               // silent backend sync
   };
 
-  const removeHandler = async (productId) => {
-    await dispatch(removeFromCartAsync(productId));
+  const removeHandler = (productId) => {
+    dispatch(removeItemLocal(productId));       // instant UI removal
+    dispatch(removeFromCartAsync(productId));   // silent backend sync
   };
 
   const checkoutHandler = () => {
@@ -86,26 +91,28 @@ const Cart = () => {
                     <div className="flex items-center justify-center sm:justify-start gap-4 mt-4">
                       <div className="flex items-center gap-3 bg-dark/50 p-1.5 rounded-lg border border-white/10">
                         <button
-                          onClick={() => updateQty(item, Math.max(1, item.qty - 1))}
-                          disabled={loading}
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#151B28] text-textMain hover:text-accent transition-all font-black disabled:opacity-50"
+                          onClick={() => updateQty(item, item.qty - 1)}
+                          disabled={item.qty <= 1}
+                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#151B28] text-textMain hover:text-accent transition-all font-black disabled:opacity-30 disabled:cursor-not-allowed"
                         ><Minus className="h-4 w-4" /></button>
                         <span className="w-6 text-center font-bold text-sm text-textMain">{item.qty}</span>
                         <button
-                          onClick={() => updateQty(item, Math.min(item.countInStock, item.qty + 1))}
-                          disabled={loading}
-                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#151B28] text-textMain hover:text-accent transition-all font-black disabled:opacity-50"
+                          onClick={() => updateQty(item, item.qty + 1)}
+                          disabled={item.qty >= item.countInStock}
+                          className="w-8 h-8 flex items-center justify-center rounded-md bg-[#151B28] text-textMain hover:text-accent transition-all font-black disabled:opacity-30 disabled:cursor-not-allowed"
                         ><Plus className="h-4 w-4" /></button>
                       </div>
+                      <span className="text-[10px] text-textSecondary font-bold uppercase tracking-widest">
+                        / {item.countInStock} in stock
+                      </span>
                     </div>
                   </div>
 
                   <div className="text-center sm:text-right flex flex-col items-center sm:items-end gap-4 min-w-[120px]">
-                    <p className="text-2xl font-black text-secondary">${(item.price * item.qty).toFixed(2)}</p>
+                    <p className="text-2xl font-black text-secondary">{price(item.price * item.qty)}</p>
                     <button
                       onClick={() => removeHandler(item._id)}
-                      disabled={loading}
-                      className="text-red-500/50 hover:text-red-500 p-2 rounded-lg bg-red-500/5 hover:bg-red-500/10 transition-all group/trash disabled:opacity-50"
+                      className="text-red-500/50 hover:text-red-500 p-2 rounded-lg bg-red-500/5 hover:bg-red-500/10 transition-all group/trash"
                     >
                       <Trash2 className="h-5 w-5 group-hover/trash:rotate-12 transition-transform" />
                     </button>
@@ -126,7 +133,7 @@ const Cart = () => {
                   <div className="flex justify-between text-textSecondary text-sm font-bold">
                     <span>Items Total ({cartItems.reduce((acc, item) => acc + item.qty, 0)})</span>
                     <span className="text-textMain">
-                      ${cartItems.reduce((acc, item) => acc + item.qty * item.price, 0).toFixed(2)}
+                      {price(cartItems.reduce((acc, item) => acc + item.qty * item.price, 0))}
                     </span>
                   </div>
                   <div className="flex justify-between text-textSecondary text-sm font-bold">
@@ -140,7 +147,7 @@ const Cart = () => {
                   <div className="pt-6 border-t border-white/10 flex justify-between items-end">
                     <span className="text-lg font-bold text-textMain uppercase tracking-tighter">Grand Total</span>
                     <span className="text-3xl font-black text-secondary tracking-tighter">
-                      ${cartItems.reduce((acc, item) => acc + item.qty * item.price, 0).toFixed(2)}
+                      {price(cartItems.reduce((acc, item) => acc + item.qty * item.price, 0))}
                     </span>
                   </div>
                 </div>

@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { listProducts } from '../redux/slices/productSlice';
 import { addToCartAsync } from '../redux/slices/cartSlice';
-import { Star, Loader2, ArrowLeft, ShoppingCart, Filter, LayoutGrid, SlidersHorizontal } from 'lucide-react';
+import { Star, Loader2, ArrowLeft, ShoppingCart, Filter, LayoutGrid, SlidersHorizontal, Check } from 'lucide-react';
 import Pagination from '../components/Pagination';
+import useCurrency from '../hooks/useCurrency';
 
 const Shop = () => {
   const { keyword, category, pageNumber = 1 } = useParams();
@@ -13,6 +14,9 @@ const Shop = () => {
 
   const { products, loading, error, page, pages } = useSelector((state) => state.products);
   const { userInfo } = useSelector((state) => state.auth);
+  const { cartItems } = useSelector((state) => state.cart);
+  const [addedMap, setAddedMap] = useState({});
+  const price = useCurrency();
 
   const handleAddToCart = async (product) => {
     if (!userInfo) {
@@ -21,7 +25,8 @@ const Shop = () => {
     }
     const result = await dispatch(addToCartAsync({ ...product, qty: 1 }));
     if (addToCartAsync.fulfilled.match(result)) {
-      navigate('/cart');
+      setAddedMap((prev) => ({ ...prev, [product._id]: true }));
+      setTimeout(() => setAddedMap((prev) => ({ ...prev, [product._id]: false })), 2000);
     } else {
       alert(result.payload || 'Failed to add to cart');
     }
@@ -115,16 +120,28 @@ const Shop = () => {
                   <div className="px-2 pb-2">
                     <h3 className="font-black text-lg mb-2 group-hover:text-secondary transition-colors truncate uppercase tracking-tight text-textMain">{product.name}</h3>
                     <div className="flex items-center justify-between">
-                      <p className="text-accent font-black text-2xl tracking-tighter">${product.price}</p>
+                      <p className="text-accent font-black text-2xl tracking-tighter">{price(product.price)}</p>
                       <span className="text-[10px] font-bold text-textSecondary/50 uppercase tracking-widest">{product.category}</span>
                     </div>
                     <button
                       onClick={() => handleAddToCart(product)}
-                      disabled={product.countInStock === 0}
-                      className="mt-4 w-full flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary text-secondary hover:text-white border border-primary/20 hover:border-primary py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={product.countInStock === 0 || addedMap[product._id] || cartItems.some(i => i._id === product._id)}
+                      className={`mt-4 w-full flex items-center justify-center gap-2 border py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed
+                        ${cartItems.some(i => i._id === product._id)
+                          ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                          : addedMap[product._id]
+                            ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                            : product.countInStock === 0
+                              ? 'bg-primary/10 border-primary/20 text-secondary opacity-40'
+                              : 'bg-primary/10 hover:bg-primary text-secondary hover:text-white border-primary/20 hover:border-primary'}`}
                     >
-                      <ShoppingCart className="h-4 w-4" />
-                      {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                      {cartItems.some(i => i._id === product._id)
+                        ? <><Check className="h-4 w-4" /> In Cart</>
+                        : addedMap[product._id]
+                          ? <><Check className="h-4 w-4" /> Added!</>
+                          : product.countInStock === 0
+                            ? 'Out of Stock'
+                            : <><ShoppingCart className="h-4 w-4" /> Add to Cart</>}
                     </button>
                   </div>
                 </div>

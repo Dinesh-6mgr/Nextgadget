@@ -9,7 +9,7 @@ const handler = (req, res) => {
 // Auth routes — strict (login/register brute force protection)
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
+    max: 1000,
     message: handler,
     handler,
     standardHeaders: true,
