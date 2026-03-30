@@ -9,10 +9,10 @@ const orderSchema = new mongoose.Schema(
         },
         orderItems: [
             {
-                name: { type: String, required: true },
-                qty: { type: Number, required: true },
-                image: { type: String, required: true },
-                price: { type: Number, required: true },
+                name:    { type: String, required: true },
+                qty:     { type: Number, required: true },
+                image:   { type: String },
+                price:   { type: Number, required: true },
                 product: {
                     type: mongoose.Schema.Types.ObjectId,
                     required: true,
@@ -21,10 +21,17 @@ const orderSchema = new mongoose.Schema(
             },
         ],
         shippingAddress: {
-            address: { type: String, required: true },
-            city: { type: String, required: true },
-            postalCode: { type: String, required: true },
-            country: { type: String, required: true },
+            // legacy fields (optional — kept for old orders)
+            address:    { type: String },
+            city:       { type: String },
+            postalCode: { type: String },
+            country:    { type: String },
+            // Nepal address fields
+            province:     { type: String },
+            district:     { type: String },
+            municipality: { type: String },
+            ward:         { type: String },
+            tole:         { type: String },
         },
         paymentMethod: {
             type: String,

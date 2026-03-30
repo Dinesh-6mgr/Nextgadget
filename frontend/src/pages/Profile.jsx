@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import api from '../api';
-import { updateAvatar } from '../redux/slices/authSlice';
+import { updateAvatar, updateUserInfo } from '../redux/slices/authSlice';
 import { User, Mail, Lock, Loader2, Package, ArrowRight, Clock, CheckCircle2, ShoppingBag, Settings, ShieldCheck, Phone, Camera } from 'lucide-react';
 import useCurrency from '../hooks/useCurrency';
 
@@ -12,6 +12,8 @@ const Profile = () => {
   const price = useCurrency();
   const dispatch = useDispatch();
   const avatarInputRef = useRef(null);
+  const { userInfo } = useSelector((state) => state.auth);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,10 +23,9 @@ const Profile = () => {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarHover, setAvatarHover] = useState(false);
   const [message, setMessage] = useState(null);
   const [success, setSuccess] = useState(false);
-
-  const { userInfo } = useSelector((state) => state.auth);
 
   const avatarSrc = userInfo?.avatar
     ? (userInfo.avatar.startsWith('/uploads') ? `${BASE_URL}${userInfo.avatar}` : userInfo.avatar)
@@ -69,24 +70,23 @@ const Profile = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    setMessage(null);
     if (password !== confirmPassword) {
       setMessage('Passwords do not match');
-    } else {
-      try {
-        setUpdateLoading(true);
-        const { data } = await api.put('/user/profile', {
-          name,
-          email,
-          password,
-          phone,
-        });
-        setUpdateLoading(false);
-        setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
-      } catch (error) {
-        setMessage(error.response?.data?.message || error.message);
-        setUpdateLoading(false);
-      }
+      return;
+    }
+    try {
+      setUpdateLoading(true);
+      const { data } = await api.put('/user/profile', { name, email, password, phone });
+      dispatch(updateUserInfo({ name: data.name, email: data.email, phone: data.phone }));
+      setPassword('');
+      setConfirmPassword('');
+      setUpdateLoading(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (error) {
+      setMessage(error.response?.data?.message || error.message);
+      setUpdateLoading(false);
     }
   };
 
@@ -100,8 +100,10 @@ const Profile = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -z-10 group-hover:bg-primary/10 transition-colors" />
               <div className="flex flex-col items-center mb-10 text-center">
                 <div
-                  className="relative w-24 h-24 rounded-full mb-4 cursor-pointer group/avatar"
+                  className="relative w-24 h-24 rounded-full mb-4 cursor-pointer"
                   onClick={() => avatarInputRef.current?.click()}
+                  onMouseEnter={() => setAvatarHover(true)}
+                  onMouseLeave={() => setAvatarHover(false)}
                 >
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary p-1 shadow-glow">
                     <div className="w-full h-full rounded-full bg-dark overflow-hidden flex items-center justify-center">
@@ -114,8 +116,7 @@ const Profile = () => {
                       )}
                     </div>
                   </div>
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center">
+                  <div className={`absolute inset-0 rounded-full bg-black/50 transition-opacity flex items-center justify-center ${avatarHover ? 'opacity-100' : 'opacity-0'}`}>
                     <Camera className="h-6 w-6 text-white" />
                   </div>
                 </div>

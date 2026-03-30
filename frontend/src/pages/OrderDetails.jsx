@@ -37,6 +37,15 @@ const OrderDetails = () => {
     }
   };
 
+  const markPaidHandler = async () => {
+    try {
+      const { data } = await api.put(`/orders/${id}/pay`, { id: 'COD', status: 'COMPLETED', update_time: new Date().toISOString() });
+      setOrder(data);
+    } catch (error) {
+      alert(error.response?.data?.message || error.message);
+    }
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-dark">
       <Loader2 className="h-16 w-16 text-secondary animate-spin" />
@@ -65,14 +74,16 @@ const OrderDetails = () => {
           </div>
           <div className="flex gap-4">
              {order.isPaid ? (
-               <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-glow shadow-green-500/10">
-                 <CheckCircle2 className="h-5 w-5" />
-                 Transmission Secured (Paid)
+               <div className="bg-green-500/10 border border-green-500/20 text-green-400 px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest">
+                 <CheckCircle2 className="h-5 w-5" /> Paid
+               </div>
+             ) : order.paymentMethod === 'COD' ? (
+               <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest">
+                 <CreditCard className="h-5 w-5" /> Cash on Delivery
                </div>
              ) : (
-               <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest shadow-glow shadow-red-500/10">
-                 <Clock className="h-5 w-5" />
-                 Credits Pending
+               <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-6 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest">
+                 <Clock className="h-5 w-5" /> Payment Pending
                </div>
              )}
           </div>
@@ -111,9 +122,19 @@ const OrderDetails = () => {
                     <MapPin className="h-6 w-6 text-accent" />
                   </div>
                   <div>
-                    <p className="text-xs text-textSecondary uppercase tracking-widest mb-2 font-bold opacity-50">Transmission Destination</p>
-                    <p className="text-lg font-black tracking-tight text-textMain">{order.shippingAddress.address}, {order.shippingAddress.city}</p>
-                    <p className="text-sm text-textSecondary">{order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
+                    <p className="text-xs text-textSecondary uppercase tracking-widest mb-2 font-bold opacity-50">Delivery Address</p>
+                    {order.shippingAddress.tole ? (
+                      <>
+                        <p className="text-lg font-black tracking-tight text-textMain">{order.shippingAddress.tole}, Ward {order.shippingAddress.ward}</p>
+                        <p className="text-sm text-textSecondary">{order.shippingAddress.municipality}, {order.shippingAddress.district}</p>
+                        <p className="text-sm text-textSecondary">{order.shippingAddress.province}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-black tracking-tight text-textMain">{order.shippingAddress.address}, {order.shippingAddress.city}</p>
+                        <p className="text-sm text-textSecondary">{order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
+                      </>
+                    )}
                   </div>
                   <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-bl-full -z-10 group-hover:bg-accent/10 transition-colors" />
                 </div>
@@ -155,12 +176,17 @@ const OrderDetails = () => {
                 {order.isPaid ? (
                   <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-6 rounded-2xl flex items-center gap-4 font-black text-sm uppercase tracking-widest">
                     <CheckCircle2 className="h-6 w-6" />
-                    Credits Transferred on {new Date(order.paidAt).toLocaleString()}
+                    Paid on {new Date(order.paidAt).toLocaleString()}
+                  </div>
+                ) : order.paymentMethod === 'COD' ? (
+                  <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-6 rounded-2xl flex items-center gap-4 font-black text-sm uppercase tracking-widest">
+                    <CreditCard className="h-6 w-6" />
+                    Pay on Delivery — amount due at doorstep
                   </div>
                 ) : (
                   <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl flex items-center gap-4 font-black text-sm uppercase tracking-widest italic animate-pulse">
                     <Clock className="h-6 w-6" />
-                    Awaiting Credit Transmission
+                    Awaiting Payment
                   </div>
                 )}
               </div>
@@ -231,6 +257,15 @@ const OrderDetails = () => {
                 >
                   MARK AS DELIVERED
                   <Truck className="h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+              {userInfo && userInfo.isAdmin && !order.isPaid && (
+                <button
+                  onClick={markPaidHandler}
+                  className="w-full bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/30 py-4 rounded-2xl font-black text-sm tracking-widest transition-all flex items-center justify-center gap-3 active:scale-95 mb-4"
+                >
+                  <CheckCircle2 className="h-5 w-5" />
+                  MARK AS PAID
                 </button>
               )}
 

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import api from '../../api';
 import { Users, Package, ClipboardList, DollarSign, ShoppingCart, TrendingUp, Loader2, ArrowRight } from 'lucide-react';
-import { useSelector } from 'react-redux';
 
 const StatCard = ({ label, value, icon: Icon, color, to }) => (
-  <Link to={to}
-    className="group bg-[#0A0F1C] border border-white/5 rounded-2xl p-6 flex items-center gap-5 hover:border-primary/30 transition-all hover:shadow-glow">
+  <Link to={to} className="group bg-[#0A0F1C] border border-white/5 rounded-2xl p-6 flex items-center gap-5 hover:border-primary/30 transition-all hover:shadow-glow">
     <div className={`p-4 rounded-xl ${color}`}>
       <Icon className="h-7 w-7 text-white" />
     </div>
@@ -46,7 +45,7 @@ const Dashboard = () => {
   );
 
   const cards = [
-    { label: 'Total Revenue', value: `$${stats?.totalRevenue?.toFixed(2) || '0.00'}`, icon: DollarSign, color: 'bg-green-500/20', to: '/admin/orders' },
+    { label: 'Total Revenue', value: `${symbol}${stats?.totalRevenue?.toFixed(2) || '0.00'}`, icon: DollarSign, color: 'bg-green-500/20', to: '/admin/orders' },
     { label: 'Total Orders', value: stats?.totalOrders ?? 0, icon: ClipboardList, color: 'bg-blue-500/20', to: '/admin/orders' },
     { label: 'Pending Delivery', value: stats?.pendingOrders ?? 0, icon: TrendingUp, color: 'bg-yellow-500/20', to: '/admin/orders' },
     { label: 'Products', value: stats?.totalProducts ?? 0, icon: Package, color: 'bg-purple-500/20', to: '/admin/products' },
@@ -61,12 +60,10 @@ const Dashboard = () => {
         <p className="text-textSecondary text-sm">Welcome back, here's what's happening.</p>
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
         {cards.map((c) => <StatCard key={c.label} {...c} />)}
       </div>
 
-      {/* Recent Orders */}
       <div className="bg-[#0A0F1C] border border-white/5 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
           <h2 className="font-black uppercase tracking-widest text-sm text-textMain">Recent Orders</h2>

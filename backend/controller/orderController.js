@@ -20,9 +20,11 @@ export const addOrderItems = async (req, res) => {
         } else {
             const order = new Order({
                 orderItems: orderItems.map((x) => ({
-                    ...x,
-                    product: x.product,
-                    _id: undefined,
+                    name:    x.name,
+                    qty:     x.qty,
+                    image:   x.image || x.images?.[0] || '',
+                    price:   x.price,
+                    product: x.product || x._id,
                 })),
                 user: req.user._id,
                 shippingAddress,
@@ -75,7 +77,7 @@ export const updateOrderToPaid = async (req, res) => {
                 id: req.body.id,
                 status: req.body.status,
                 update_time: req.body.update_time,
-                email_address: req.body.payer.email_address,
+                email_address: req.body.payer?.email_address || '',
             };
 
             const updatedOrder = await order.save();

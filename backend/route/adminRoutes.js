@@ -10,7 +10,7 @@ router.get("/stats", protect, admin, getStats);
 router.get("/carts", protect, admin, getAllCarts);
 router.get("/users", protect, admin, getAllUsers);
 router.delete("/users/:id", protect, admin, deleteUser);
-router.route("/settings").get(protect, admin, getSettings).put(protect, admin, updateSettings);
+router.route("/settings").get(getSettings).put(protect, admin, updateSettings);
 router.post("/settings/upload/:field", protect, admin, upload.single("image"), uploadImage);
 router.delete("/settings/upload/:field", protect, admin, deleteImage);
 

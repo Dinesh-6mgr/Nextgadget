@@ -9,26 +9,30 @@ export const getProducts = async (req, res) => {
         const page = Number(req.query.page) || 1;
 
         const keyword = req.query.keyword
-            ? {
-                  name: {
-                      $regex: req.query.keyword,
-                      $options: "i",
-                  },
-              }
+            ? { name: { $regex: req.query.keyword, $options: "i" } }
             : {};
 
         const categoryParam = req.query.category ? req.query.category.trim() : "";
         const category = categoryParam
-            ? { 
-                category: { 
-                    $regex: categoryParam.replace(/s$/i, ''), 
-                    $options: "i" 
-                } 
-              } 
+            ? { category: { $regex: categoryParam.replace(/s$/i, ''), $options: "i" } }
             : {};
 
-        const count = await Product.countDocuments({ ...keyword, ...category });
-        const products = await Product.find({ ...keyword, ...category })
+        const featured = req.query.featured === 'true' ? { featured: true } : {};
+
+        // sort
+        let sortOption = {};
+        switch (req.query.sort) {
+            case 'rating':     sortOption = { rating: -1 };    break;
+            case 'newest':     sortOption = { createdAt: -1 }; break;
+            case 'price_asc':  sortOption = { price: 1 };      break;
+            case 'price_desc': sortOption = { price: -1 };     break;
+            default:           sortOption = { createdAt: -1 };
+        }
+
+        const filter = { ...keyword, ...category, ...featured };
+        const count = await Product.countDocuments(filter);
+        const products = await Product.find(filter)
+            .sort(sortOption)
             .limit(pageSize)
             .skip(pageSize * (page - 1));
 

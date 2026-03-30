@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { clearCartAsync } from '../redux/slices/cartSlice';
 import api from '../api';
-import { MapPin, CreditCard, ArrowRight, ShieldCheck, CheckCircle2, Truck, Package, Info } from 'lucide-react';
+import { MapPin, CreditCard, ArrowRight, ShieldCheck, CheckCircle2, Truck, Package, Info, Loader2 } from 'lucide-react';
 import useCurrency from '../hooks/useCurrency';
 
 const PlaceOrder = () => {
@@ -11,8 +11,24 @@ const PlaceOrder = () => {
   const navigate = useNavigate();
 
   const cart = useSelector((state) => state.cart);
-  const { cartItems, shippingAddress, paymentMethod } = cart;
+  const { shippingAddress, paymentMethod } = cart;
+  // use only the items the user selected at checkout (stored in sessionStorage)
+  const cartItems = (() => {
+    try {
+      const stored = sessionStorage.getItem('checkoutItems');
+      return stored ? JSON.parse(stored) : cart.cartItems;
+    } catch { return cart.cartItems; }
+  })();
   const price = useCurrency();
+
+  // support both old (address/city) and new Nepal (province/district/municipality) format
+  const shippingLine1 = shippingAddress.tole
+    ? `${shippingAddress.tole}, Ward ${shippingAddress.ward}`
+    : shippingAddress.address || '';
+  const shippingLine2 = shippingAddress.municipality
+    ? `${shippingAddress.municipality}, ${shippingAddress.district}`
+    : `${shippingAddress.postalCode || ''} ${shippingAddress.country || ''}`.trim();
+  const shippingLine3 = shippingAddress.province || '';
 
   // Prices
   const addDecimals = (num) => (Math.round(num * 100) / 100).toFixed(2);
@@ -25,13 +41,16 @@ const PlaceOrder = () => {
     Number(taxPrice)
   ).toFixed(2);
 
+  const [placing, setPlacing] = useState(false);
+  const [placeError, setPlaceError] = useState('');
+
   const placeOrderHandler = async () => {
+    if (placing) return;
+    setPlacing(true);
+    setPlaceError('');
     try {
       const { data } = await api.post('/orders', {
-        orderItems: cartItems.map(item => ({
-          ...item,
-          product: item._id
-        })),
+        orderItems: cartItems.map(item => ({ ...item, product: item._id })),
         shippingAddress,
         paymentMethod,
         itemsPrice,
@@ -40,9 +59,11 @@ const PlaceOrder = () => {
         totalPrice,
       });
       dispatch(clearCartAsync());
+      sessionStorage.removeItem('checkoutItems');
       navigate(`/order/${data._id}`);
     } catch (error) {
-      alert(error.response?.data?.message || error.message);
+      setPlaceError(error.response?.data?.message || error.message);
+      setPlacing(false);
     }
   };
 
@@ -89,9 +110,10 @@ const PlaceOrder = () => {
                   <MapPin className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-xs text-textSecondary uppercase tracking-widest mb-2 font-bold opacity-50">Transmission Destination</p>
-                  <p className="text-lg font-black tracking-tight text-textMain">{shippingAddress.address}, {shippingAddress.city}</p>
-                  <p className="text-sm text-textSecondary">{shippingAddress.postalCode}, {shippingAddress.country}</p>
+                  <p className="text-xs text-textSecondary uppercase tracking-widest mb-2 font-bold opacity-50">Delivery Address</p>
+                  <p className="text-lg font-black tracking-tight text-textMain">{shippingLine1}</p>
+                  <p className="text-sm text-textSecondary">{shippingLine2}</p>
+                  {shippingLine3 && <p className="text-sm text-textSecondary">{shippingLine3}</p>}
                 </div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-bl-full -z-10 group-hover:bg-accent/10 transition-colors" />
               </div>
@@ -176,12 +198,15 @@ const PlaceOrder = () => {
               </div>
 
               <div className="space-y-4">
+                {placeError && (
+                  <p className="text-red-400 text-xs font-bold bg-red-500/10 border border-red-500/20 px-4 py-3 rounded-xl text-center">{placeError}</p>
+                )}
                 <button 
                   onClick={placeOrderHandler}
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-2xl font-black text-xl tracking-widest transition-all shadow-glow flex items-center justify-center gap-4 group active:scale-95"
+                  disabled={placing || cartItems.length === 0}
+                  className="w-full bg-primary hover:bg-primary/90 text-white py-6 rounded-2xl font-black text-xl tracking-widest transition-all shadow-glow flex items-center justify-center gap-4 group active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  INITIALIZE ORDER
-                  <ArrowRight className="h-7 w-7 group-hover:translate-x-1 transition-transform" />
+                  {placing ? <Loader2 className="h-6 w-6 animate-spin" /> : <>PLACE ORDER <ArrowRight className="h-7 w-7 group-hover:translate-x-1 transition-transform" /></>}
                 </button>
                 <button 
                   onClick={() => navigate('/payment')}
@@ -191,9 +216,11 @@ const PlaceOrder = () => {
                 </button>
               </div>
 
-              <div className="mt-8 flex items-center gap-3 justify-center text-[10px] font-black text-textSecondary/40 uppercase tracking-[0.3em]">
-                <ShieldCheck className="h-4 w-4" />
-                Quantum Encryption Active
+              <div className="mt-8 flex items-center gap-3 justify-center text-[10px] font-black uppercase tracking-[0.2em] opacity-50">
+                {paymentMethod === 'COD'
+                  ? <><Truck className="h-4 w-4 text-amber-400" /><span className="text-amber-400">Pay cash when your order arrives</span></>
+                  : <><ShieldCheck className="h-4 w-4 text-textSecondary" /><span className="text-textSecondary">Secure Checkout</span></>
+                }
               </div>
             </div>
           </div>

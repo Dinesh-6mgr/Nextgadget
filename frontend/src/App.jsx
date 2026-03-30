@@ -4,6 +4,8 @@ import { useSelector } from 'react-redux';
 
 // User Components
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import ScrollToTop from './components/ScrollToTop';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -37,17 +39,14 @@ const UserLayout = ({ children }) => (
   <div className="min-h-screen bg-dark text-textMain font-sans">
     <Navbar />
     <main>{children}</main>
-    <footer className="bg-[#0A0F1C] border-t border-white/5 py-16 px-4 mt-20">
-      <div className="text-center text-xs text-textSecondary">
-        © 2026 NextGadget. All rights reserved.
-      </div>
-    </footer>
+    <Footer />
   </div>
 );
 
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
 
         {/* ── ADMIN ROUTES ── */}
@@ -55,6 +54,9 @@ const App = () => {
           <AdminRoute><AdminLayout><Dashboard /></AdminLayout></AdminRoute>
         } />
         <Route path="/admin/products" element={
+          <AdminRoute><AdminLayout><AdminProductList /></AdminLayout></AdminRoute>
+        } />
+        <Route path="/admin/products/page/:pageNumber" element={
           <AdminRoute><AdminLayout><AdminProductList /></AdminLayout></AdminRoute>
         } />
         <Route path="/admin/orders" element={
@@ -73,11 +75,14 @@ const App = () => {
         {/* ── USER ROUTES ── */}
         <Route path="/" element={<UserLayout><Home /></UserLayout>} />
         <Route path="/shop" element={<UserLayout><Shop /></UserLayout>} />
+        <Route path="/shop/page/:pageNumber" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/page/:pageNumber" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/search/:keyword" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/search/:keyword/page/:pageNumber" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/category/:category" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/category/:category/page/:pageNumber" element={<UserLayout><Shop /></UserLayout>} />
+        <Route path="/shop/category/:category" element={<UserLayout><Shop /></UserLayout>} />
+        <Route path="/shop/category/:category/page/:pageNumber" element={<UserLayout><Shop /></UserLayout>} />
         <Route path="/login" element={<UserLayout><Login /></UserLayout>} />
         <Route path="/register" element={<UserLayout><Register /></UserLayout>} />
         <Route path="/product/:id" element={<UserLayout><ProductDetails /></UserLayout>} />

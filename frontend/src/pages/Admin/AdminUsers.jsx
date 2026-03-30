@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api';
-import { Loader2, Trash2, Users } from 'lucide-react';
+import { Loader2, Trash2, Users, User } from 'lucide-react';
+
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -69,8 +71,11 @@ const AdminUsers = () => {
               {users.map((u) => (
                 <tr key={u._id} className="border-t border-white/5 hover:bg-white/5">
                   <td className="px-5 py-4">
-                    <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                      <span className="text-xs font-black text-primary uppercase">{u.name?.[0]}</span>
+                    <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+                      {u.avatar
+                        ? <img src={u.avatar.startsWith('/uploads') ? `${BASE_URL}${u.avatar}` : u.avatar} alt={u.name} className="w-full h-full object-cover" />
+                        : <span className="text-xs font-black text-primary uppercase">{u.name?.[0]}</span>
+                      }
                     </div>
                   </td>
                   <td className="px-5 py-4 font-bold text-textMain">{u.name}</td>

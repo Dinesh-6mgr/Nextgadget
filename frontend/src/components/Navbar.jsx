@@ -19,6 +19,10 @@ const Navbar = () => {
     ? (logoUrl.startsWith('/uploads') ? `${BASE_URL}${logoUrl}` : logoUrl)
     : '/fulllogo.png';
 
+  const avatarSrc = userInfo?.avatar
+    ? (userInfo.avatar.startsWith('/uploads') ? `${BASE_URL}${userInfo.avatar}` : userInfo.avatar)
+    : null;
+
   // Fetch cart from backend whenever user logs in
   useEffect(() => {
     if (userInfo && !userInfo.isAdmin) {
@@ -93,8 +97,11 @@ const Navbar = () => {
                 )}
 
                 <Link to="/profile" className="flex items-center gap-2 hover:text-secondary transition-all group">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:border-secondary transition-all">
-                    <User className="h-4 w-4 text-secondary" />
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:border-secondary transition-all overflow-hidden">
+                    {avatarSrc
+                      ? <img src={avatarSrc} alt="avatar" className="w-full h-full object-cover" />
+                      : <User className="h-4 w-4 text-secondary" />
+                    }
                   </div>
                   <span className="text-sm font-black uppercase tracking-widest text-textMain hidden sm:block">
                     {userInfo.name.split(' ')[0]}
